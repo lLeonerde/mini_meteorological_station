@@ -1,0 +1,13 @@
+wifi initial
+tag-io communication
+
+wifi + bl integration
+
+commands list
+
+configuration screen + bluetooth
+
+IT for button
+
+
+device logic

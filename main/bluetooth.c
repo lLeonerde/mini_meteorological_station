@@ -25,15 +25,6 @@ static const char local_device_name[] = CONFIG_EXAMPLE_LOCAL_DEVICE_NAME;
 static const esp_spp_sec_t sec_mask = ESP_SPP_SEC_NONE;
 static const esp_spp_role_t role_slave = ESP_SPP_ROLE_SLAVE;
 
-static void disable_bluetooth(void)
-{
-    esp_bluedroid_disable();
-    esp_bluedroid_deinit();
-    esp_bt_controller_disable();
-    esp_bt_controller_deinit();
-    esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);
-    ESP_LOGI(SPP_TAG, "Bluetooth desativado");
-}
 
 static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
 {
@@ -68,6 +59,7 @@ static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
             memcpy(buffer_local, param->data_ind.data, param->data_ind.len);
             buffer_local[param->data_ind.len] = 0;
             printf("data: %s", buffer_local);
+            // send to another place to process
         }
         break;
     default:
@@ -79,7 +71,18 @@ void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param)
 {
 }
 
-void start_bluetooth(void)
+
+void deinit_bluetooth(void)
+{
+    esp_bluedroid_disable();
+    esp_bluedroid_deinit();
+    esp_bt_controller_disable();
+    esp_bt_controller_deinit();
+    esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);
+    ESP_LOGI(SPP_TAG, "Bluetooth desativado");
+}
+
+void init_bluetooth(void)
 {
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
@@ -111,12 +114,4 @@ void start_bluetooth(void)
     // if gpio0 is low, deinitialize bluetooth and enter deep sleep
     esp_rom_gpio_pad_select_gpio(GPIO_NUM_0);
     gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
-    while(1){
-        vTaskDelay(1000 / portTICK_PERIOD_MS); // wait for a second to read the gpio
-        if (gpio_get_level(GPIO_NUM_0) == 0) {
-            ESP_LOGI(SPP_TAG, "GPIO0 está baixo, desativando Bluetooth e entrando em deep sleep");
-            disable_bluetooth();
-            esp_deep_sleep_start();
-        }
-    }
 }
