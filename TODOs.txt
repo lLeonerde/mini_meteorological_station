@@ -2,10 +2,12 @@
 [X]tagoio communication
 [X]wifi + tagoio + sensor 
 
-[ ]NVS for wifi configuration
-[ ]wifi + bl integration
+[X]NVS for wifi configuration
+[X]wifi + bl integration
 
-[ ]commands list
+[X]commands list (kinda?)
+
+[ ]taskfy my code
 
 [ ]configuration screen + bluetooth
 

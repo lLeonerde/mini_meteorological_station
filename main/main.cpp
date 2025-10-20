@@ -47,8 +47,9 @@ public:
 LGFX_OLED_I2C_128x64 lcd;
 LGFX_Sprite canvas(&lcd);
 bmp280_t sensor_dev;
-nvs_handle_t my_nvs_handle;
+
 my_wifi_config_t my_wifi_config;
+
 extern "C"
 {
     void app_main(void){

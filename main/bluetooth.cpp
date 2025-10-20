@@ -15,6 +15,8 @@
 #include "driver/gpio.h"
 #include "esp_sleep.h"
 
+#include "command_process.h"
+
 #define SPP_TAG "SPP_ACCEPTOR_DEMO"
 #define SPP_SERVER_NAME "SPP_SERVER"
 
@@ -57,7 +59,10 @@ static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
             memcpy(buffer_local, param->data_ind.data, param->data_ind.len);
             buffer_local[param->data_ind.len] = 0;
             printf("data: %s", buffer_local);
-            // send to another place to process
+            spp_data_packet_t data_packet;
+            data_packet.len = param->data_ind.len;
+            memcpy(data_packet.data, param->data_ind.data, param->data_ind.len);
+            xQueueSend(spp_data_queue, &data_packet, portMAX_DELAY);
         }
         break;
     default:
