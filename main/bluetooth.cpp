@@ -18,9 +18,7 @@
 #define SPP_TAG "SPP_ACCEPTOR_DEMO"
 #define SPP_SERVER_NAME "SPP_SERVER"
 
-
-static const char local_device_name[] = CONFIG_EXAMPLE_LOCAL_DEVICE_NAME;
-
+static const char local_device_name[] = "METEOROLOGICAL_STATION";
 
 static const esp_spp_sec_t sec_mask = ESP_SPP_SEC_NONE;
 static const esp_spp_role_t role_slave = ESP_SPP_ROLE_SLAVE;
@@ -84,12 +82,7 @@ void deinit_bluetooth(void)
 
 void init_bluetooth(void)
 {
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
+   
 
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_BLE));
 
@@ -103,10 +96,11 @@ void init_bluetooth(void)
     ESP_ERROR_CHECK(esp_bt_gap_register_callback(esp_bt_gap_cb));
     ESP_ERROR_CHECK(esp_spp_register_callback(esp_spp_cb));
 
-    esp_spp_cfg_t spp_cfg = {
-        .mode = ESP_SPP_MODE_CB,
-        .enable_l2cap_ertm = true,
-    };
+    esp_spp_cfg_t spp_cfg;
+    memset(&spp_cfg, 0, sizeof(spp_cfg));
+    spp_cfg.mode = ESP_SPP_MODE_CB;
+    spp_cfg.enable_l2cap_ertm = true;
+
 
     ESP_ERROR_CHECK(esp_spp_enhanced_init(&spp_cfg));
     

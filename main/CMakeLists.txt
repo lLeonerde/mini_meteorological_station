@@ -1,3 +1,3 @@
-idf_component_register(SRCS "bluetooth.c" "main.cpp"
+idf_component_register(SRCS "wifi_data_nvs.cpp" "tagoIO_communication.cpp" "wifi_setup.cpp" "bluetooth.cpp" "main.cpp"
                       INCLUDE_DIRS "."
-                      REQUIRES LovyanGFX bmp280)
+                      REQUIRES LovyanGFX bmp280 bt esp_http_client esp-tls nvs_flash)

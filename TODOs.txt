@@ -1,13 +1,15 @@
-wifi initial
-tag-io communication
+[X]wifi initial
+[X]tagoio communication
+[X]wifi + tagoio + sensor 
 
-wifi + bl integration
+[ ]NVS for wifi configuration
+[ ]wifi + bl integration
 
-commands list
+[ ]commands list
 
-configuration screen + bluetooth
+[ ]configuration screen + bluetooth
 
-IT for button
+[ ]IT for button
 
 
-device logic
+[ ]device logic
