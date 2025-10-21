@@ -3,6 +3,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/queue.h"
+#include "freertos/event_groups.h"
 #include <string.h>
 
 #define SPP_DATA_MAX_LEN 128
@@ -17,7 +18,9 @@ typedef struct {
     size_t  len;
 } spp_data_packet_t;
 
-QueueHandle_t spp_data_queue;
-
-void command_process_task(void *param);
+extern EventGroupHandle_t app_event_group;
+extern QueueHandle_t spp_data_queue;
+extern "C"{
+    void command_process_task(void *param);
+}
 #endif /* MAIN_COMMAND_PROCESS_H_ */

@@ -4,6 +4,6 @@
 #include "wifi_structure.h"
 extern "C"
 {
-esp_err_t wifi_init_sta(my_wifi_config_t my_wifi_config);
+void wifi_init_sta(my_wifi_config_t my_wifi_config);
 }
 #endif

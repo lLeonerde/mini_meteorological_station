@@ -16,6 +16,7 @@
 #include "esp_sleep.h"
 
 #include "command_process.h"
+#include "display_manager.h"
 
 #define SPP_TAG "SPP_ACCEPTOR_DEMO"
 #define SPP_SERVER_NAME "SPP_SERVER"
@@ -26,14 +27,12 @@ static const esp_spp_sec_t sec_mask = ESP_SPP_SEC_NONE;
 static const esp_spp_role_t role_slave = ESP_SPP_ROLE_SLAVE;
 
 
-static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
-{
+static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param){
 
     switch (event) {
     case ESP_SPP_INIT_EVT:
         if (param->init.status == ESP_SPP_SUCCESS) {
             ESP_LOGI(SPP_TAG, "ESP_SPP_INIT_EVT");
-            esp_spp_start_srv(sec_mask, role_slave, 0, SPP_SERVER_NAME);
         } else {
             ESP_LOGE(SPP_TAG, "ESP_SPP_INIT_EVT status:%d", param->init.status);
         }
@@ -62,7 +61,7 @@ static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
             spp_data_packet_t data_packet;
             data_packet.len = param->data_ind.len;
             memcpy(data_packet.data, param->data_ind.data, param->data_ind.len);
-            xQueueSend(spp_data_queue, &data_packet, portMAX_DELAY);
+            xQueueSend(spp_data_queue, &data_packet, 0);
         }
         break;
     default:
@@ -70,13 +69,11 @@ static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
     }
 }
 
-void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param)
-{
+void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *param){
 }
 
 
-void deinit_bluetooth(void)
-{
+void deinit_bluetooth(void){
     esp_bluedroid_disable();
     esp_bluedroid_deinit();
     esp_bt_controller_disable();
@@ -85,9 +82,13 @@ void deinit_bluetooth(void)
     ESP_LOGI(SPP_TAG, "Bluetooth desativado");
 }
 
-void init_bluetooth(void)
-{
-   
+void init_bluetooth(void){
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
 
     ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_BLE));
 
@@ -101,16 +102,10 @@ void init_bluetooth(void)
     ESP_ERROR_CHECK(esp_bt_gap_register_callback(esp_bt_gap_cb));
     ESP_ERROR_CHECK(esp_spp_register_callback(esp_spp_cb));
 
-    esp_spp_cfg_t spp_cfg;
-    memset(&spp_cfg, 0, sizeof(spp_cfg));
-    spp_cfg.mode = ESP_SPP_MODE_CB;
-    spp_cfg.enable_l2cap_ertm = true;
-
+    esp_spp_cfg_t spp_cfg = {
+        .mode = ESP_SPP_MODE_CB,
+        .enable_l2cap_ertm = true,
+    };
 
     ESP_ERROR_CHECK(esp_spp_enhanced_init(&spp_cfg));
-    
-    ESP_LOGI(SPP_TAG, "Inicialização completa. Aguardando eventos SPP...");
-    // if gpio0 is low, deinitialize bluetooth and enter deep sleep
-    esp_rom_gpio_pad_select_gpio(GPIO_NUM_0);
-    gpio_set_direction(GPIO_NUM_0, GPIO_MODE_INPUT);
 }

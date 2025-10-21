@@ -1,10 +1,12 @@
 #include "command_process.h"
 #include "wifi_data_nvs.h"
+#include "app_globals.h"
+QueueHandle_t spp_data_queue = xQueueCreate(10, sizeof(spp_data_packet_t));
+EventGroupHandle_t app_event_group;
 
 // command will be:
 // cmd=type,data
 // example: cmd=wifi_cfg,My_SSID,My_Password
-
 void command_process_task(void *param){
     spp_data_packet_t data_received;
 
@@ -22,6 +24,7 @@ void command_process_task(void *param){
             }
             switch(data_received.cmd_type){
                 case CMD_SET_WIFI_CFG:
+                {
                     char *saveptr;
                     char *data_start = buffer_local + 13;
                     char *ssid = strtok_r(data_start, ",", &saveptr);
@@ -34,11 +37,15 @@ void command_process_task(void *param){
                         new_config.password[sizeof(new_config.password) - 1] = '\0';
                         esp_err_t err = save_wifi_config(my_nvs_handle, &new_config);
                         if(err == ESP_OK){
-                            //notify success to app main
+                            printf("comando processado\n");
+                            xEventGroupSetBits(app_event_group, WIFI_CONFIG_UPDATED_BIT);
                         }
                     } else {
                         printf("Erro de sintaxe no comando wifi_cfg. Formato esperado: cmd=wifi_cfg,SSID,SENHA\r\n");
                     }
+                    break;
+                }
+                case CMD_UNKNOWN:
                     break;
                 default:
                     break;
