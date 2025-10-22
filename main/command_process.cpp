@@ -1,7 +1,8 @@
 #include "command_process.h"
 #include "wifi_data_nvs.h"
 #include "app_globals.h"
-QueueHandle_t spp_data_queue = xQueueCreate(10, sizeof(spp_data_packet_t));
+#include <string.h>
+#include <ctype.h>
 EventGroupHandle_t app_event_group;
 
 // command will be:
@@ -29,7 +30,13 @@ void command_process_task(void *param){
                     char *data_start = buffer_local + 13;
                     char *ssid = strtok_r(data_start, ",", &saveptr);
                     char *password = strtok_r(NULL, ",", &saveptr);
+                    printf("DEBUG: Parser extraiu -> SSID: [%s], Senha: [%s]\n", ssid, password);
                     if (ssid != NULL && password != NULL) {
+
+                        size_t len = strlen(password);
+                        while (len > 0 && (password[len - 1] == '\n' || password[len - 1] == '\r' || isspace(password[len - 1]))) {
+                            password[--len] = '\0'; 
+                        }
                         my_wifi_config_t new_config;
                         strncpy(new_config.ssid, ssid, sizeof(new_config.ssid) - 1);
                         strncpy(new_config.password, password, sizeof(new_config.password) - 1);

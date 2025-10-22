@@ -14,9 +14,6 @@ typedef enum {
 
 typedef struct {
     display_state_t state;
-    float temperature;
-    float pressure;
-    my_wifi_config_t wifi_config;
 } display_message_t;
 
 extern QueueHandle_t display_queue;

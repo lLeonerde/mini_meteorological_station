@@ -14,6 +14,7 @@
 #include "wifi_setup.h"
 #include "wifi_structure.h"
 #include "app_globals.h"
+#include "display_manager.h"
 #define EXAMPLE_ESP_MAXIMUM_RETRY  5
 
 
@@ -36,19 +37,26 @@ static void event_handler(void* arg, esp_event_base_t event_base,
             s_retry_num++;
             ESP_LOGI(TAG, "retry to connect to the AP");
         } else {
-            xEventGroupClearBits(app_event_group, WIFI_CONNECTED_BIT); // Limpa o bit de conectado
+
+            xEventGroupClearBits(app_event_group, WIFI_CONNECTED_BIT); // clear connected bit
+            xEventGroupSetBits(app_event_group, WIFI_DISCONNECTED_BIT); // set disconected bit
         }
         ESP_LOGI(TAG,"connect to the AP fail");
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
         ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
         ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
         s_retry_num = 0;
-        xEventGroupSetBits(app_event_group, WIFI_CONNECTED_BIT);
+        display_message_t msg;
+        msg.state = DISPLAY_STATE_SHOW_DATA;
+        xQueueSend(display_queue, &msg, 0);
+        printf("conected\n");
+        xEventGroupSetBits(app_event_group, WIFI_CONNECTED_BIT); // set connected bit
+        xEventGroupClearBits(app_event_group, WIFI_DISCONNECTED_BIT); // clear disconectedbit
 
     }
 }
 
-void wifi_init_sta(my_wifi_config_t my_wifi_config){
+void wifi_init(){
     esp_netif_create_default_wifi_sta();
 
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
@@ -66,6 +74,9 @@ void wifi_init_sta(my_wifi_config_t my_wifi_config){
                                                         &event_handler,
                                                         NULL,
                                                         &instance_got_ip));
+}
+
+void wifi_connect(my_wifi_config_t my_wifi_config){
 
     wifi_config_t wifi_config;
     memset(&wifi_config, 0, sizeof(wifi_config));
